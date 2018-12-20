@@ -1,0 +1,383 @@
+{extend name="public/other"}
+{block name="main"}
+<style type="text/css">
+	.remove-main{
+		/*border:1px solid red;*/
+		width: 140px;
+		float: left;
+		margin: 10px;
+	}
+	.remove{
+		/*border: 1px solid red;*/
+		border-radius: 50%;
+		width: 20px;
+		height: 20px;
+		background: rgba(0,0,0,0.3);
+		color: white;
+		font-size: 8px;
+		text-align: center;
+		line-height: 20px;
+		float: right;
+	}
+	.remove:active{
+		color: red;
+	}
+	/* 半透明的遮罩层 */
+	#overlay {
+	    background: #000;
+	    filter: alpha(opacity=50); /* IE的透明度 */
+	    opacity: 0.5;  /* 透明度 */
+	    display: none;
+	    position: absolute;
+	    top: 0px;
+	    left: 0px;
+	    width: 100%;
+	    height: 100%;
+	    z-index: 100; /* 此处的图层要大于页面 */
+	    display:none;
+	}
+	#ts{
+		position: absolute;
+		display: none;
+		z-index: 101;
+		color: white;
+		font-size: 30px;
+	}
+</style>
+<script type="text/javascript" src="__STATIC__/date/dist/date-time-picker.min.js"></script>
+<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页
+	<span class="c-gray en">&gt;</span>
+	知乎管理
+	<span class="c-gray en">&gt;</span>
+	{if !empty($info)}修改问题{else}添加问题{/if}
+	<a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a>
+</nav>
+<div class="page-container">
+	<form class="form form-horizontal" id="form-group-add" enctype="multipart/form-data">	
+				<div class="row cl">
+					<label class="form-label col-xs-4 col-sm-2">
+						题目：</label>
+					<div class="formControls col-xs-8 col-sm-9">
+						<input type="text" id="title"  class="input-text" name="title" value="{$info?$info['title']:''}">
+					</div>
+				</div>
+				<div class="row cl">
+					<label class="form-label col-xs-4 col-sm-2">问题类型：</label>
+					<div class="formControls col-xs-8 col-sm-9 skin-minimal">
+						<div class="radio-box">
+							<input type="radio" id="state2" value="1" name="type"  {if empty($info)}checked{/if} {if !empty($info)}{if $info['type']==1}checked{/if} disabled {/if}>
+							<label for="state2" >活动专题</label>
+						</div>			
+						<div class="radio-box">
+							<input name="type" type="radio" value="2" id="state1"  {if !empty($info)}{if $info['type']==2}checked{/if} disabled {/if}>
+							<label for="state1">官方提问</label>
+						</div>
+						<div class="radio-box">
+							<input name="type" type="radio" value="3" id="state3"  {if !empty($info)}{if $info['type']==3}checked{/if} disabled {/if}>
+							<label for="state3">官方悬赏</label>
+						</div>		
+					</div>
+				</div>
+				<div class="row cl">
+					<label class="form-label col-xs-4 col-sm-2">选择活动：</label>
+					<div class=" col-xs-8 col-sm-9">
+					<select class="select" size="1" name="aid" >
+						<option value="0" >选择活动</option>
+						{volist name="active" id="item"}
+						<option value="{$item['id']}" {if !empty($info)}{if $info['aid'] == $item['id']}seleted{/if}{/if}>{$item['title']}</option>
+						{/volist}
+					</select>
+					<small style="color:grey;font-size:15px;">（仅在活动专题中生效）</small>
+					</div>
+				</div>	
+				
+				<div class="row cl">
+					<label class="form-label col-xs-4 col-sm-2">详细说明：</label>
+					<div class=" col-xs-8 col-sm-9">
+						<textarea  class="textarea"  name="content" >{$info?$info['content']:''}</textarea>
+					</div>
+				</div>				
+				<div class="row cl">
+					<label class="form-label col-xs-4 col-sm-2">图片：</label>
+					<div class="formControls col-xs-8 col-sm-9">
+						<span class="btn-upload form-group">
+							<a href="javascript:void();" class="btn btn-primary upload-btn" ><i class="Hui-iconfont"></i> 浏览文件</a>
+							<input type="file" name="file" multiple class="input-file" id="showimg">
+							</span>
+					</div>
+				</div>	
+				<div class="row cl">
+					<label class="form-label col-xs-4 col-sm-2">预览：</label>
+					<div class="formControls col-xs-8 col-sm-9" id="show_img">
+					</div>
+				</div>
+				<div class="row cl">
+					<label class="form-label col-xs-4 col-sm-2">
+						悬赏积分：</label>
+					<div class="formControls col-xs-8 col-sm-9">
+						<input type="number"   class="input-text" name="credit" value=""> <small style="color:grey;font-size:15px;">（仅在官方悬赏中生效）</small> 
+					</div>
+				</div>																								
+				<div class="row cl">
+					<label class="form-label col-xs-4 col-sm-2">是否开启：</label>
+					<div class="formControls col-xs-8 col-sm-9 skin-minimal">
+						<div class="radio-box">
+							<input name="state" type="radio" value="1" id="state1" checked >
+							<label for="state1">开启</label>
+						</div>
+						<div class="radio-box">
+							<input type="radio" id="state2" value="0" name="state" >
+							<label for="state2">关闭</label>
+						</div>					
+					</div>
+				</div>					
+		</div>
+		<div class="row cl">
+			<div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-2">
+				<button id="article_save_submit" class="btn btn-primary radius" type="button"><i class="Hui-iconfont">&#xe632;</i> 保存</button>
+			</div>
+		</div>
+	</form>
+</div>
+<div id="overlay"></div>
+<div id="ts">正在上传，请勿刷新</div>
+{/block}
+{block name="js"}
+<script type="text/javascript">
+	var imgs = [];//存储路径
+	var paths = [];//上传路径
+	var is_post = true;	
+	$(function(){
+	{if !empty($info['logo'])}
+		{volist name="$info['logo']" id="item1"}
+			imgs.push("{$item1}");
+			paths.push("{$item1}");
+		{/volist}
+		window.imgs = imgs;
+		window.paths = paths;
+		var html1 = '';
+		for(var z=0;z<imgs.length;z++){
+			html1 +='<div class="remove-main imgs'+z+'" ><div class="remove reomve-img " onclick="removeImg('+z+');">X</div><img  src="/./uploads/'+imgs[z]+'" style="max-width: 140px;max-height: 140px;" class="radius"></div>'; 			
+		}
+		$('#show_img').append(html1);
+	{/if}
+	$('.skin-minimal input').iCheck({
+		checkboxClass: 'icheckbox-blue',
+		radioClass: 'iradio-blue',
+		increaseArea: '20%'
+	});
+	//上传活动信息
+	$("#article_save_submit").click(function(){
+			console.log('进入按钮');
+			showOverlay();
+			var formData = new FormData();
+			if(imgs.length>0)
+			{
+				//图片上传
+				for(var i = 0; i<imgs.length;i++){
+					if(typeof(imgs[i])!='string'){
+						var newsData = new FormData();
+						newsData.append('file',imgs[i]);
+						$.ajax({
+							url:"{:url('admin/zhihu/upload')}",
+							type:'POST',
+							processData : false,
+							contentType : false,
+							async:false,
+							data:newsData,
+							success:function(path){
+								var msg = $.parseJSON(path);
+								if(msg.code==200){
+									paths.push(msg.msg);
+									window.paths = paths;
+									window.is_post = true;
+								}else{
+									layer.msg(msg.msg,{icon:0,time:1000});
+									window.is_post = false;
+									return false;
+								}
+							}
+
+						})
+						if(!is_post){
+							return false;
+						}
+					}
+				}
+			}else{
+				window.is_post = true;
+			}
+			if(!is_post){
+				return false;
+			}
+					
+			var data = $("#form-group-add").serializeArray();
+			$.each(data,function(){
+				var name = this.name;
+				var value = this.value;
+				if(name=='title'){
+					if(value==''){
+						is_post = false;
+						hideOverlay();
+						layer.msg('题目',{icon:0,time:1000});return false;
+					}
+				}
+				formData.append(name,value);
+			});
+			if(!is_post){
+				return;
+			}
+			formData.append('logo',paths);
+			$.ajax({
+				url:"{:url('admin/zhihu/doadd')}",
+				type:"POST",
+				processData : false,
+				contentType : false,
+				async:false,
+				data:formData,
+				success:function(res){
+					console.log(res);
+					// var msg = $.parseJSON(res);
+					setTimeout(function(){
+						hideOverlay();
+						var msg = $.parseJSON(res);
+						if(msg.code=='200')
+						{
+							layer.msg('操作成功!',{icon:1,time:1000});
+							setTimeout(function(){
+								window.location.reload();
+							},1000);
+						}else{
+							layer.msg(msg.msg,{icon:0,time:1000});
+						}
+					},1000);
+					
+					return false;
+
+				}
+			})		
+	});
+	//多图上传预览显示
+	$("#showimg").change(function(){
+			var isEx = $("#showimg").get(0).files.length;
+			var types = "image/jpeg,image/png";
+			if(isEx>0){
+				var files = $("#showimg").get(0).files;
+				var index = 0;
+				for(var i = 0 ; i < isEx ; i++){
+					imgs.push(files[i]);
+					if(i==0){
+						index = imgs.length-1;
+					}
+					//过滤掉非图片文件
+					if(files[i].type!='' && types.indexOf(files[i].type)!=-1){
+						//这个地方怎么判断 谁他娘的知道
+					}else{
+						imgs.splice(imgs.length-1,1);
+					}
+
+				}
+				window.imgs = imgs;	
+				var html = "";
+				var j = index;
+				for(j;j<imgs.length;j++){
+						var url = window.URL.createObjectURL(imgs[j]);
+						html+='<div class="remove-main imgs'+j+'" ><div class="remove reomve-img " onclick="removeImg('+j+');">X</div><img  src="'+url+'" style="max-width: 140px;max-height: 140px;" class="radius"></div>';	
+						
+				}
+				$('#show_img').append(html);
+			}
+	});
+
+});
+	//移除图片
+	function removeImg(n){
+		var news = imgs;
+		$(".imgs"+n).remove();
+		imgs.splice(n,1);
+		if(paths.length>0){
+			paths.splice(n,1);
+			window.paths = paths;
+		}
+		var j = 0;
+		for(j;j<imgs.length;j++){
+			for(var i=0;i<=news.length;i++){
+					$('.remove-main').eq(j).removeClass('imgs'+i);
+					$('.remove-main').eq(j).addClass('imgs'+j);
+					$('.remove-main').eq(j).children('div').removeAttr('onclick');
+					$('.remove-main').eq(j).children('div').attr('onclick',"removeImg("+j+")");
+			}
+		}	
+		window.imgs = imgs;
+	}
+	//修改显示图片
+	
+	/* 显示遮罩层 */
+	function showOverlay() {
+	    $("#overlay").height(pageHeight());
+	    $("#overlay").width(pageWidth());
+	    console.log('进入遮罩层');
+	    // fadeTo第一个参数为速度，第二个为透明度
+	    // 多重方式控制透明度，保证兼容性，但也带来修改麻烦的问题
+	    $("#overlay").css({display:'block'});
+	    adjust();
+	}
+
+	/* 隐藏覆盖层 */
+	function hideOverlay() {
+	    $("#overlay").fadeOut(200);
+	    $('#ts').fadeOut(200);
+	}
+
+	/* 当前页面高度 */
+	function pageHeight() {
+	    return document.body.scrollHeight;
+	}
+
+	/* 当前页面宽度 */
+	function pageWidth() {
+	    return document.body.scrollWidth;
+	}
+	/* 定位到页面中心 */
+	function adjust() {
+	    var w = $('#ts').width();
+	    var h = $('#ts').height();
+	    
+	    var t = scrollY() + (windowHeight()/2) - (h/2);
+	    if(t < 0) t = 0;
+	    
+	    var l = scrollX() + (windowWidth()/2) - (w/2);
+	    if(l < 0) l = 0;
+	    
+	    $('#ts').css({left: l+'px', top: t+'px',display: 'block'});
+	}
+
+	//浏览器视口的高度
+	function windowHeight() {
+	    var de = document.documentElement;
+
+	    return self.innerHeight || (de && de.clientHeight) || document.body.clientHeight;
+	}
+
+	//浏览器视口的宽度
+	function windowWidth() {
+	    var de = document.documentElement;
+
+	    return self.innerWidth || (de && de.clientWidth) || document.body.clientWidth
+	}
+
+	/* 浏览器垂直滚动位置 */
+	function scrollY() {
+	    var de = document.documentElement;
+
+	    return self.pageYOffset || (de && de.scrollTop) || document.body.scrollTop;
+	}
+
+	/* 浏览器水平滚动位置 */
+	function scrollX() {
+	    var de = document.documentElement;
+
+	    return self.pageXOffset || (de && de.scrollLeft) || document.body.scrollLeft;
+	}		
+</script>
+{/block}
